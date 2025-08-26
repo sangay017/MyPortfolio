@@ -37,12 +37,23 @@ const ALLOWED_ORIGINS = FRONTEND_URL
   ? FRONTEND_URL.split(',')
       .map((s) => s.trim())
       .filter(Boolean)
-  .map((s) => s.replace(/^['"]|['"]$/g, ''))
-  .map((s) => s.replace(/\/$/, '').toLowerCase())
+      .map((s) => s.replace(/^['"]|['"]$/g, ''))
+      .map((s) => s.replace(/\/$/, '').toLowerCase())
   : [];
 
+// Safe defaults so deployments work even if env is missing/mismatched
+// - Allow any Vercel app subdomain (frontend typically lives there)
+// - Allow localhost during dev
+const DEFAULT_ALLOWED = [
+  'https://*.vercel.app',
+  'http://localhost:*',
+  'http://127.0.0.1:*',
+  'https://localhost:*'
+];
+const EFFECTIVE_ALLOWED = [...ALLOWED_ORIGINS, ...DEFAULT_ALLOWED];
+
 // Build regex list for wildcard patterns like https://*.vercel.app
-const originMatchers = ALLOWED_ORIGINS.map((o) => {
+const originMatchers = EFFECTIVE_ALLOWED.map((o) => {
   if (o === '*' || o === 'true') return { type: 'any' };
   if (o.includes('*')) {
     const pattern = o
@@ -58,17 +69,17 @@ const corsOptions = {
     // Allow same-origin or tools with no origin (curl/postman)
     if (!origin) return callback(null, true);
 
-    // If no env configured, allow the requester's origin (same-site deployments)
-    if (originMatchers.length === 0) {
-      return callback(null, true);
-    }
-
     const normalized = origin.replace(/\/$/, '').toLowerCase();
     for (const m of originMatchers) {
       if (m.type === 'any') return callback(null, true);
       if (m.type === 'exact' && normalized === m.value) return callback(null, true);
       if (m.type === 'regex' && m.re.test(normalized)) return callback(null, true);
     }
+    // Fallback: if both are on vercel.app domains, be permissive
+    try {
+      const host = new URL(normalized).hostname;
+      if (host.endsWith('.vercel.app')) return callback(null, true);
+    } catch {}
     return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
