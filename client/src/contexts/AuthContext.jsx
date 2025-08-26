@@ -5,7 +5,7 @@ const AuthContext = createContext();
 
 import { getApiBase } from '../lib/apiBase';
 const API_BASE = getApiBase();
-const API_URL = `${API_BASE}/api/v1/auth`;
+const API_URL = `${(API_BASE || '').replace(/\/$/, '')}/api/v1/auth`;
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);

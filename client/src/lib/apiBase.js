@@ -9,6 +9,12 @@
 export function getApiBase(customBase) {
   // Normalize a single URL string (remove trailing slash)
   const norm = (u) => (typeof u === 'string' ? u.trim().replace(/\/$/, '') : '');
+  // Allow opting into same-origin relative API (useful with Vercel rewrites)
+  // If set to 'true', we return an empty base so callers produce URLs like '/api/...'
+  const useRelative = (import.meta?.env?.VITE_API_RELATIVE || import.meta?.env?.VITE_USE_RELATIVE_API) === 'true';
+  if (useRelative && !customBase) {
+    return '';
+  }
   const isLocalUrl = (u) => {
     try {
       const h = new URL(u).hostname;
@@ -68,5 +74,13 @@ export function getApiBase(customBase) {
   }
 
   // Fallback to current origin
+  // If we’re on a platform with rewrites (like Vercel), returning '' lets callers hit '/api/...'
+  // which avoids CORS entirely via same-origin rewrite. Otherwise, use origin.
+  try {
+    if (typeof window !== 'undefined') {
+      const host = new URL(origin).hostname;
+      if (host.endsWith('.vercel.app')) return '';
+    }
+  } catch {}
   return origin;
 }

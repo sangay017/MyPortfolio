@@ -4,6 +4,7 @@ import { Button } from '../ui/button';
 import { ExternalLink, Github } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { getApiBase } from '../../lib/apiBase';
 import { getProjects, createProject } from '../../services/projectService';
 import AddProjectModal from '../projects/AddProjectModal';
 import { toast } from 'react-hot-toast';
@@ -13,7 +14,7 @@ const ProjectCard = ({ project, index }) => {
     if (project.imageUrl) {
       return project.imageUrl.startsWith('http') 
         ? project.imageUrl 
-        : `${(import.meta.env.VITE_BACKEND_URL || import.meta.env.BACKEND_URL || import.meta.env.VITE_API_URL || window.location.origin).replace(/\/$/, '')}${project.imageUrl}`;
+        : `${(getApiBase() || '').replace(/\/$/, '')}${project.imageUrl}`;
     }
     if (project.image && project.image.data) {
       return `data:${project.image.contentType};base64,${project.image.data.toString('base64')}`;
@@ -41,7 +42,7 @@ const ProjectCard = ({ project, index }) => {
               onLoad={() => setImageError(false)}
               onError={() => {
                 // Try ID-based URL first, then fallback to Unsplash placeholder
-                const baseUrl = (import.meta.env.VITE_BACKEND_URL || import.meta.env.BACKEND_URL || import.meta.env.VITE_API_URL || window.location.origin).replace(/\/$/, '');
+                const baseUrl = (getApiBase() || '').replace(/\/$/, '');
                 const idBasedUrl = project._id ? `${baseUrl}/api/v1/projects/${project._id}/image` : null;
                 if (idBasedUrl && imageUrl !== idBasedUrl && !imageUrl.includes('/image')) {
                   setImageUrl(idBasedUrl);

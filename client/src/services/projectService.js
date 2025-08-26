@@ -1,6 +1,6 @@
 import { getApiBase } from '../lib/apiBase';
 const API_BASE = getApiBase();
-const API_URL = `${API_BASE}/api/v1/projects`;
+const API_URL = `${(API_BASE || '').replace(/\/$/, '')}/api/v1/projects`;
 
 // Helper function to make authenticated requests
 const fetchWithAuth = async (url, options = {}) => {
@@ -44,7 +44,7 @@ const fetchWithAuth = async (url, options = {}) => {
 // ========================
 export const getProjects = async () => {
   try {
-    const response = await fetch(API_URL, {
+  const response = await fetch(API_URL, {
       headers: {
         'Content-Type': 'application/json',
       },

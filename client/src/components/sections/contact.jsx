@@ -30,8 +30,8 @@ const Contact = () => {
   const onSubmit = async (data) => {
     setSubmitStatus({ type: null, message: '' });
     try {
-      const base = getApiBase();
-      const res = await fetch(`${base}/api/v1/contact`, {
+  const base = getApiBase();
+  const res = await fetch(`${(base || '').replace(/\/$/, '')}/api/v1/contact`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)

@@ -47,8 +47,8 @@ function AppContent() {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const base = getApiBase();
-        const response = await fetch(`${base}/api/v1/projects`);
+  const base = getApiBase();
+  const response = await fetch(`${(base || '').replace(/\/$/, '')}/api/v1/projects`);
         if (response.ok) {
           const data = await response.json();
           setProjects(Array.isArray(data) ? data : []);
@@ -92,7 +92,7 @@ function AppContent() {
       {/* Global Chatbot bubble (hidden on auth pages) */}
       {!isAuthPage && (
         <Chatbot
-          apiBase={(import.meta.env.VITE_BACKEND_URL || import.meta.env.BACKEND_URL || import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE || 'http://localhost:5000')}
+          apiBase={getApiBase()}
           theme="auto"
           welcome="Hi, I'm Sangay. Ask me about my projects, skills, or how to reach me!"
           faqs={[
